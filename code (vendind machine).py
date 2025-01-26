@@ -1,20 +1,20 @@
-# Define the vending machine menu
+# Define the vending machine menu and initial stock
 menu = [
-    {"code": "1", "item": "Chocolate", "price": 1.50},
-    {"code": "2", "item": "Chips", "price": 2.00},
-    {"code": "3", "item": "Coffee", "price": 1.25},
-    {"code": "4", "item": "Biscuit", "price": 1.00},
-    {"code": "5", "item": "Juice", "price": 2.50},
+    {"code": "1", "item": "Chocolate", "price": 1.50, "stock": 7},
+    {"code": "2", "item": "Chips", "price": 2.00, "stock": 5},
+    {"code": "3", "item": "Coffee", "price": 1.25, "stock": 8},
+    {"code": "4", "item": "Biscuit", "price": 1.00, "stock": 5},
+    {"code": "5", "item": "Juice", "price": 2.50, "stock": 6},
 ]
 
 def display_menu():
     """Displays the vending machine menu."""
     print("\n--- Vending Machine Menu ---")
-    print("Code | Item        | Price ($)")
-    print("----------------------------")
+    print("Code | Item        | Price ($) | Stock")
+    print("--------------------------------------")
     for item in menu:
-        print(f"{item['code']:4} | {item['item']:10} | {item['price']:.2f}")
-    print("----------------------------")
+        print(f"{item['code']:4} | {item['item']:10} | {item['price']:.2f}    | {item['stock']}")
+    print("--------------------------------------")
 
 def select_item():
     """Prompts the user to select an item by its code."""
@@ -22,7 +22,11 @@ def select_item():
         code = input("Enter the code of the item you'd like to purchase: ").strip()
         for item in menu:
             if item["code"] == code:
-                return item
+                if item["stock"] > 0:
+                    return item
+                else:
+                    print(f"Sorry, {item['item']} is out of stock.")
+                    return None
         print("Invalid code. Please enter a valid code from the menu.")
 
 def process_payment(price):
@@ -59,11 +63,16 @@ def main():
     while True:
         display_menu()
         selected_item = select_item()
+        if selected_item is None:
+            continue
+        
         print(f"You selected {selected_item['item']} for ${selected_item['price']:.2f}.")
         
         change = process_payment(selected_item["price"])
         print(f"Dispensing {selected_item['item']}... Enjoy!")
         
+        selected_item["stock"] -= 1  # Decrement the stock by 1
+
         if change > 0:
             print(f"Your change is ${change:.2f}.")
         else:
