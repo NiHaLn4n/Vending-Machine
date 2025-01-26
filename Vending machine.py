@@ -1,91 +1,82 @@
-class Item:
-    def __init__(self, code, name, category, price, stock):
-        # To initialize the item with its code, name, category, price, and stock level
-        self.code = code  # To store the item code
-        self.name = name  # To store the item name
-        self.category = category  # To store the item category
-        self.price = price  # To store the item price
-        self.stock = stock  # To store the item stock level
+# Define the vending machine menu
+menu = [
+    {"code": "1", "item": "Chocolate", "price": 1.50},
+    {"code": "2", "item": "Chips", "price": 2.00},
+    {"code": "3", "item": "Coffee", "price": 1.25},
+    {"code": "4", "item": "Biscuit", "price": 1.00},
+    {"code": "5", "item": "Juice", "price": 2.50},
+]
 
-    def dispense(self):
-        # To dispense the item if it is in stock
-        if self.stock > 0:  # To check if the item is in stock
-            self.stock -= 1  # To reduce stock by one
-            return True  # To return True indicating successful dispense
-        return False  # To return False if the item is out of stock
+def display_menu():
+    """Displays the vending machine menu."""
+    print("\n--- Vending Machine Menu ---")
+    print("Code | Item        | Price ($)")
+    print("----------------------------")
+    for item in menu:
+        print(f"{item['code']:4} | {item['item']:10} | {item['price']:.2f}")
+    print("----------------------------")
 
-class VendingMachine:
-    def __init__(self, name):
-        # To initialize the vending machine with a name and a list of items
-        self.name = name  # To store the vending machine name
-        self.items = [  # To store the list of items in the vending machine
-            Item('1', 'Coca-Cola', 'Drink', 2.50, 10),
-            Item('2', 'Pepsi', 'Drink', 2.50, 10),
-            Item('3', 'Orange Juice', 'Drink', 2.00, 8),
-            Item('4', 'Milkshake', 'Snack', 3.00, 5),
-            Item('5', 'Red Bull', 'Drink', 1.00, 20),
-            Item('6', 'Frappuccino', 'Drink', 5.00, 10),
-            Item('7', 'Coffee', 'Hot Drink', 2.50, 12)
-        ]
-        self.balance = 0.0  # To initialize the balance to zero
+def select_item():
+    """Prompts the user to select an item by its code."""
+    while True:
+        code = input("Enter the code of the item you'd like to purchase: ").strip()
+        for item in menu:
+            if item["code"] == code:
+                return item
+        print("Invalid code. Please enter a valid code from the menu.")
 
-    def display_menu(self):
-        # To display the menu of items available in the vending machine
-        print(f"\n--- Welcome to {self.name}! ---")
-        for item in self.items:  # To loop through each item
-            print(f"{item.code}: {item.name} ({item.category}) - {item.price:.2f} AED | Stock: {item.stock}")
-
-    def get_item_by_code(self, code):
-        # To retrieve an item from the vending machine by its code
-        for item in self.items:  # To loop through each item
-            if item.code == code:  # To check if the item code matches
-                return item  # To return the item if found
-        return None  # To return None if the item is not found
-
-    def insert_money(self, amount):
-        # To insert money into the vending machine and update the balance
-        self.balance += amount  # To increase balance by the inserted amount
-        print(f"Balance: {self.balance:.2f} AED")
-
-    def calculate_change(self, item_price):
-        # To calculate the change to be returned to the user
-        change = self.balance - item_price  # To calculate change
-        self.balance = 0  # To reset the balance after giving change
-        return change  # To return the change
-
-    def select_item(self, code):
-        # To select an item based on its code and process the purchase
-        item = self.get_item_by_code(code)  # To get the item by code
-        if item:
-            if item.stock == 0:  # To check if the item is out of stock
-                print("Item out of stock.")
-            elif self.balance < item.price:  # To check if there are insufficient funds
-                print("Insufficient funds.")
+def process_payment(price):
+    """Processes payment using coins or cash."""
+    total_inserted = 0
+    print(f"The item costs ${price:.2f}. Insert cash or coins.")
+    while total_inserted < price:
+        try:
+            inserted = float(input(f"Insert money (total inserted: ${total_inserted:.2f}): "))
+            if inserted > 0:
+                total_inserted += inserted
             else:
-                self.balance -= item.price  # To deduct item price from balance
-                if item.dispense():  # To attempt to dispense the item
-                    print(f"Dispensing {item.name}...")
-                    change = self.calculate_change(item.price)  # To calculate change
-                    if change > 0:
-                        print(f"Change: {change:.2f} AED")  # To print the change if any
-                else:
-                    print("Failed to dispense item.")
+                print("Please insert a positive amount.")
+        except ValueError:
+            print("Invalid input. Please insert valid cash or coin amounts.")
+    return total_inserted - price
+
+def make_suggestion(selected_item):
+    """Suggests an additional purchase based on the selected item."""
+    suggestions = {
+        "Coffee": "Biscuit",
+        "Chips": "Juice",
+        "Chocolate": "Water",
+        "Biscuit": "Juice",
+        "Juice": "Chips"
+    }
+    suggestion = suggestions.get(selected_item["item"])
+    if suggestion:
+        print(f"Suggestion: How about pairing your {selected_item['item']} with a {suggestion}?")
+
+def main():
+    """Main function to run the vending machine."""
+    print("Welcome to the Vending Machine!")
+    while True:
+        display_menu()
+        selected_item = select_item()
+        print(f"You selected {selected_item['item']} for ${selected_item['price']:.2f}.")
+        
+        change = process_payment(selected_item["price"])
+        print(f"Dispensing {selected_item['item']}... Enjoy!")
+        
+        if change > 0:
+            print(f"Your change is ${change:.2f}.")
         else:
-            print("Invalid item code.")  # To print error if item code is invalid
+            print("No change due. Thank you for the exact payment!")
+        
+        make_suggestion(selected_item)
+        
+        another_purchase = input("Would you like to make another purchase? (yes/no): ").strip().lower()
+        if another_purchase != "yes":
+            print("Thank you for using the Vending Machine. Goodbye!")
+            break
 
-    def run(self):
-        # To run the main loop of the vending machine
-        while True:
-            self.display_menu()  # To display the menu
-            code = input("Enter item code: ").strip().upper()  # To get item code from user
-            amount = float(input("Insert money: "))  # To get money from user
-            self.insert_money(amount)  # To insert the money
-            self.select_item(code)  # To select and dispense the item
-            if input("Make another purchase? (yes/no): ").strip().lower() != "yes":
-                print(f"Thank you for using {self.name}. Goodbye!")
-                break  # To exit the loop if user doesn't want to make another purchase
-
-# To create and run the vending machine
-vending_machine = VendingMachine("Snack Corner")  # To create a vending machine
-vending_machine.run()  # To run the vending machine
+# Start the program
+if __name__ == "__main__":
+    main()
 
